@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,10 +53,8 @@ public class ToDoController {
     }
 
     //todolist 삭제
-    @DeleteMapping
-    public ResponseDTO<ToDo> delete(@RequestHeader("Authorization") String accessToken, @RequestBody ToDoDTO dto) {
-        Member member = toDoService.getAuthenticatedMember(accessToken);
-        ToDo entity = toDoService.toEntity(dto, member);
-        return toDoService.delete(entity);
+    @DeleteMapping("/{id}")
+    public ResponseDTO<ToDo> delete(@RequestHeader("Authorization") String accessToken, @PathVariable("id") Long todoid) {
+        return toDoService.delete(todoid);
     }
 }

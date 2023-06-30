@@ -36,7 +36,7 @@ public interface ToDoService {
     ResponseDTO<ToDo> create(final ToDo entity);
     ResponseDTO<List<ToDo>> retrieve(final Member member);
     ResponseDTO<ToDo> update(final ToDo entity);
-    ResponseDTO<ToDo> delete(final ToDo entity);
+    ResponseDTO<ToDo> delete(final Long entity);
 
     Member getAuthenticatedMember(String accessToken);
 }

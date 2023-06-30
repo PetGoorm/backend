@@ -46,10 +46,10 @@ public class ToDoServiceImpl implements ToDoService{
     public ResponseDTO<ToDo> create(ToDo entity) {
 
         //데이터 삽입
-        toDoRepository.save(entity);
+        ToDo savedToDo = toDoRepository.save(entity);
 
         //userId에 해당하는 전제 데이터 리턴
-        return ResponseDTO.of(HttpStatus.OK.value(), "todo 작성이 완료되었습니다.", entity);
+        return ResponseDTO.of(HttpStatus.OK.value(), "todo 작성이 완료되었습니다.", savedToDo);
     }
 
     @Override
@@ -85,18 +85,18 @@ public class ToDoServiceImpl implements ToDoService{
     }
 
     @Override
-    public ResponseDTO<ToDo> delete(ToDo entity) {
+    public ResponseDTO<ToDo> delete(Long entity) {
 
         try {
             // 데이터의 존재 여부를 확인
-            final Optional<ToDo> original = toDoRepository.findById(entity.getId());
+            final Optional<ToDo> original = toDoRepository.findById(entity);
 
             // 데이터가 존재하는 경우에만 삭제 수행
             if (original.isPresent()) {
 
-                toDoRepository.delete(entity);
+                toDoRepository.delete(original.get());
                 // userId에 해당하는 전체 데이터 리턴
-                return ResponseDTO.of(HttpStatus.OK.value(), "todo 삭제가 완료되었습니다.", entity);
+                return ResponseDTO.of(HttpStatus.OK.value(), "todo 삭제가 완료되었습니다.", original.get());
             } else {
 
                 // 데이터가 없는 경우 메시지 출력
