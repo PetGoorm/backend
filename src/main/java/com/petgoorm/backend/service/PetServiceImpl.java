@@ -53,7 +53,7 @@ public class PetServiceImpl implements PetService {
         Pet pet = petRepository.findByMember(member).orElseThrow(()-> new NullPointerException("펫이 존재하지 않습니다."));
         try{
             PetDTO petDTO = toDTO(pet);
-            return ResponseDTO.of(HttpStatus.OK.value(), "펫 등록에 성공했습니다.", petDTO);
+            return ResponseDTO.of(HttpStatus.OK.value(), "펫 정보 조회에 성공했습니다.", petDTO);
 
         }catch (Exception e){
             return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
@@ -61,6 +61,49 @@ public class PetServiceImpl implements PetService {
         }
 
     }
+
+    @Transactional
+    @Override
+    public ResponseDTO<PetDTO> updatePet(Long petId, PetDTO petDTO){
+
+        try {
+
+            Pet pet = petRepository.findById(petId).orElseThrow(() -> new NullPointerException("펫이 존재하지 않습니다."));
+
+            //더티체킹(save 불필요)
+            pet.UpdatePet(petDTO);
+
+            log.info("pet " + pet);
+            return ResponseDTO.of(HttpStatus.OK.value(), "펫 수정에 성공했습니다.", null);
+
+        }
+        catch (Exception e){
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+
+        }
+
+
+    }
+
+    //펫 삭제 서비스
+    @Transactional
+    @Override
+    public ResponseDTO<Long> deletePet(Long petId){
+
+        try {
+            petRepository.deletePetByPetId(petId);
+            return ResponseDTO.of(HttpStatus.OK.value(), "펫 삭제에 성공했습니다.", petId);
+        }
+        catch (Exception e){
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+
+        }
+
+
+    }
+
+
+
 
 
 }

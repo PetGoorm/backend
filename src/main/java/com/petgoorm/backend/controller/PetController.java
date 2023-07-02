@@ -27,7 +27,14 @@ public class PetController {
         return petService.petInfo();
     }
 
+    @PutMapping("/edit/{petId}")
+    public ResponseDTO<PetDTO> update(@PathVariable Long petId, @RequestBody PetDTO petDTO){
+        return petService.updatePet(petId, petDTO);
+    }
 
-
+    @DeleteMapping("/remove/{petId}")
+    public ResponseDTO<Long> delete(@PathVariable Long petId){
+        return petService.deletePet(petId);
+    }
 
 }

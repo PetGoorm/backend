@@ -43,4 +43,21 @@ public class MemberRequestDTO {
         }
     }
 
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class UpdatePassword{
+        private String nowPW;
+        private String updatePW;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UpdateNick{
+        private String nickname;
+    }
+
 }

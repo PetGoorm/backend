@@ -6,6 +6,8 @@ import com.petgoorm.backend.dto.member.MemberResponseDTO;
 import com.petgoorm.backend.entity.Member;
 import com.petgoorm.backend.jwt.JwtTokenProvider;
 import com.petgoorm.backend.repository.MemberRepository;
+import com.petgoorm.backend.repository.PetRepository;
+import com.petgoorm.backend.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,9 +15,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService{
     private final MemberRepository memberRepository;
+    private final PetRepository petRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
@@ -72,9 +77,11 @@ public class MemberServiceImpl implements MemberService{
         try {
             if (nicknameDuplicate) {
                 //중복
+                log.info("중복 닉네임: "+nickname);
                 return ResponseDTO.of(HttpStatus.CONFLICT.value(), "이미 존재하는 닉네임입니다.", null);
             } else {
                 //사용가능한 이메일
+                log.info("사용 가능한 닉네임: "+nickname);
                 return ResponseDTO.of(HttpStatus.OK.value(), "사용 가능한 닉네임입니다.", nickname);
             }
         }catch (Exception e){
@@ -119,6 +126,33 @@ public class MemberServiceImpl implements MemberService{
 
     }
 
+    //refresh token 유효성 검증 후 access token 재발급
+    @Override
+    public ResponseDTO<String> reissue(String nowAccessToken) {
+        // 1. Access Token 에서 User email 을 가져옵니다.
+        Authentication authentication = jwtTokenProvider.getAuthentication(nowAccessToken);
+
+        // 2. Redis 에서 User email 을 기반으로 저장된 Refresh Token 값을 가져옵니다.
+        String refreshToken = (String)redisTemplate.opsForValue().get("RT:" + authentication.getName());
+
+        // 3. Refresh Token 검증
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Refresh Token 정보가 유효하지 않습니다.", null);
+        }
+
+        // (추가) 로그아웃되어 Redis 에 RefreshToken 이 존재하지 않는 경우 처리
+        if(ObjectUtils.isEmpty(refreshToken)) {
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "잘못된 요청입니다", null);
+        }
+
+        // 4. 새로운 access 토큰 생성
+        String accessToken = jwtTokenProvider.accessToken(authentication);
+
+        return ResponseDTO.of(HttpStatus.OK.value(), "Token 정보가 갱신되었습니다.", accessToken);
+    }
+
+
+
     @Transactional
     @Override
     public ResponseDTO<String> logout(String accessToken) {
@@ -148,5 +182,71 @@ public class MemberServiceImpl implements MemberService{
 
         return ResponseDTO.of(HttpStatus.OK.value(), "로그아웃 성공했습니다.", authentication.getName());
     }
+
+    //비밀번호 변경 서비스
+    @Transactional
+    @Override
+    public ResponseDTO<Long> updatePassword(MemberRequestDTO.UpdatePassword updatePassword){
+        // 현재 로그인한 사용자의 Member 정보 가져오기
+        Member member = memberRepository.findByEmail(SecurityUtil.getCurrentUserEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
+
+        try{
+            boolean pwcheck = passwordEncoder.matches(updatePassword.getNowPW(), member.getPassword());
+
+            if(pwcheck){
+                member.updatePassword(passwordEncoder.encode(updatePassword.getUpdatePW()));
+                return ResponseDTO.of(HttpStatus.OK.value(), "비밀번호 변경에 성공했습니다.", member.getId());
+            }
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호가 올바르지 않습니다", null);
+
+        }
+        catch (Exception e){
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+        }
+
+
+    }
+
+
+    //닉네임 변경 서비스
+    @Transactional
+    @Override
+    public ResponseDTO<Long> updateNick(MemberRequestDTO.UpdateNick updateNick){
+        // 현재 로그인한 사용자의 Member 정보 가져오기
+        Member member = memberRepository.findByEmail(SecurityUtil.getCurrentUserEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
+
+        try{
+                member.updateNick(updateNick.getNickname());
+                return ResponseDTO.of(HttpStatus.OK.value(), "닉네임 변경에 성공했습니다.", member.getId());
+        }
+
+        catch (Exception e){
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+        }
+
+    }
+
+    //회원 탈퇴 서비스
+    @Transactional
+    @Override
+    public ResponseDTO<Long> deleteMember(){
+        // 현재 로그인한 사용자의 Member 정보 가져오기
+        Member member = memberRepository.findByEmail(SecurityUtil.getCurrentUserEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
+
+        try{
+            petRepository.deletePetByMemberId(member.getId());
+            memberRepository.deleteMemberByEmail(member.getEmail());
+            return ResponseDTO.of(HttpStatus.OK.value(), "회원 탈퇴에 성공했습니다.", member.getId());
+        }
+
+        catch (Exception e){
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+        }
+
+    }
+
 
 }

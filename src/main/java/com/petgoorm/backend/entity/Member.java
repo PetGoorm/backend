@@ -91,4 +91,14 @@ public class Member extends BaseEntity implements UserDetails {
     public boolean isEnabled() {
         return false;
     }
+
+    //패스워드 변경 메서드
+    public void updatePassword(String updatePW){
+        this.password = updatePW;
+    }
+    //닉네임 변경 메서드
+    public void updateNick(String updateNick){
+        this.nickname = updateNick;
+    }
+
 }

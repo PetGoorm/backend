@@ -1,5 +1,6 @@
 package com.petgoorm.backend.entity;
 
+import com.petgoorm.backend.dto.pet.PetDTO;
 import lombok.*;
 
 import javax.persistence.*;
@@ -44,5 +45,15 @@ public class Pet extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name="member_id")
     private Member member;
+
+    public void UpdatePet(PetDTO petDTO) {
+        this.petUrl = petDTO.getPetUrl();
+        this.age = petDTO.getAge();
+        this.birth = petDTO.getBirth();
+        this.firstmet = petDTO.getFirstmet();
+        this.petname = petDTO.getPetname();
+        this.type = petDTO.getType();
+        this.weight = petDTO.getWeight();
+    }
 
 }

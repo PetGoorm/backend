@@ -41,4 +41,8 @@ public interface PetService {
     ResponseDTO<Long> petAdd(PetDTO petDTO);
 
     ResponseDTO<PetDTO> petInfo();
+
+    ResponseDTO<PetDTO> updatePet(Long petId, PetDTO petDTO);
+
+    ResponseDTO<Long> deletePet(Long petId);
 }
