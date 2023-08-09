@@ -1,5 +1,7 @@
 package com.petgoorm.backend.service;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.petgoorm.backend.dto.ResponseDTO;
@@ -33,10 +35,11 @@ public interface ToDoService {
         return toDoDTO;
     }
 
-    ResponseDTO<ToDo> create(final ToDo entity);
-    ResponseDTO<List<ToDo>> retrieve(final Member member);
-    ResponseDTO<ToDo> update(final ToDo entity);
-    ResponseDTO<ToDo> delete(final Long entity);
+    ResponseDTO<ToDo> create(final ToDoDTO toDoDTO, String accessToken);
+    ResponseDTO<List<ToDo>> retrieve(final String accessToken);
+    ResponseDTO<List<ToDo>> getDayTodo(final String accessToken, LocalDate day);
+    ResponseDTO<ToDo> update(final ToDoDTO toDoDTO, Long todoId, String accessToken);
+    ResponseDTO<ToDo> delete(final Long entity, String accessToken);
 
     Member getAuthenticatedMember(String accessToken);
 }

@@ -1,6 +1,7 @@
 package com.petgoorm.backend.entity;
 
 import java.sql.Date;
+import java.time.LocalDate;
 
 import javax.persistence.*;
 import lombok.*;
@@ -29,7 +30,7 @@ public class ToDo extends BaseEntity{
     private String privacy;
 
     @Column(name="day")
-    private Date day;
+    private LocalDate day;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_member_id")

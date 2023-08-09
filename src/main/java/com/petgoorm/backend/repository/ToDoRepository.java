@@ -1,5 +1,7 @@
 package com.petgoorm.backend.repository;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,4 +15,7 @@ import com.petgoorm.backend.entity.ToDo;
 public interface ToDoRepository extends JpaRepository<ToDo, Long> {
 
     List<ToDo> findByMember(Member member);
+
+    List<ToDo> findByMemberAndDay(Member member, LocalDate day);
+
 }
