@@ -13,11 +13,11 @@ configurations {
 		extendsFrom annotationProcessor
 	}
 }
-//
-//task copySecret(type: Copy) {
-//	from './config-submodule/application.yml' // 서브모듈에 있는 application.yml 설정파일을 복사한다.
-//	into 'src/main/resources'
-//}
+
+task copySecret(type: Copy) {
+	from './config-submodule/application.yml' // 서브모듈에 있는 application.yml 설정파일을 복사한다.
+	into 'src/main/resources'
+}
 
 repositories {
 	mavenCentral()
@@ -40,6 +40,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.4'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
