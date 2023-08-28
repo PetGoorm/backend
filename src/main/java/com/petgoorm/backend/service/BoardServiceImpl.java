@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -160,6 +161,43 @@ public class BoardServiceImpl implements BoardService {
         }
 
     }
+
+    //지역별 게시판 글 목록 조회
+    @Override
+    @Transactional
+    public ResponseDTO<List<BoardResponseDTO>> getRegionBoardList(String tokenWithoutBearer) {
+        Member member = getAuthenticatedMember(tokenWithoutBearer);
+        log.info("로그인한 멤버의 주소" + member.getAddress());
+        String sliceAddress = sliceAddress(member.getAddress());
+        try {
+            List<Board> boardList = boardRepository.findByWriterAddressContainingOrderByRegDateDesc(sliceAddress);
+            List<BoardResponseDTO> boardDTOList = toDTOList(boardList);
+
+            if (boardDTOList == null || boardDTOList.isEmpty()){
+                return ResponseDTO.of(HttpStatus.NO_CONTENT.value(), "게시물이 없습니다.", null);
+            }
+
+            return ResponseDTO.of(HttpStatus.OK.value(), null, boardDTOList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+        }
+    }
+
+    //세번째 공백전까지 주소 슬라이스
+    @Override
+    public String sliceAddress(String input){
+        String[] arrays = input.split(" ");
+        //서울 서초구 잠원동까지 잘리는 주소
+        String sliced = String.join(" ", Arrays.copyOfRange(arrays, 0, 3));
+        log.info("자른 주소: " + sliced);
+        return sliced;
+    }
+
+
+
+
+
 }
 
 

@@ -21,8 +21,9 @@ public class BoardController {
 
     // 글 목록 조회
     @GetMapping("/list")
-    public ResponseDTO<List<BoardResponseDTO>> getBoardList() {
-        return boardService.getBoardList();
+    public ResponseDTO<List<BoardResponseDTO>> getBoardList(@RequestHeader("Authorization") String accessToken) {
+        String tokenWithoutBearer = accessToken.replace("Bearer ", "");
+        return boardService.getRegionBoardList(tokenWithoutBearer);
     }
 
     // 글 조회

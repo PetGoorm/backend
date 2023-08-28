@@ -6,6 +6,7 @@ import com.petgoorm.backend.dto.board.BoardResponseDTO;
 import com.petgoorm.backend.entity.Board;
 import com.petgoorm.backend.entity.Member;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -87,4 +88,10 @@ public interface BoardService {
     }
 
 
+
+    //지역별 게시판 글 목록 조회
+    ResponseDTO<List<BoardResponseDTO>> getRegionBoardList(String tokenWithoutBearer);
+
+    //세번째 공백전까지 주소 슬라이스
+    String sliceAddress(String input);
 }
