@@ -11,6 +11,8 @@ import com.petgoorm.backend.repository.MemberRepository;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -57,10 +59,10 @@ public class BoardServiceImpl implements BoardService {
             Optional<Board> optionalBoard = boardRepository.findById(boardId);
             return ResponseDTO.of(HttpStatus.OK.value(), null, optionalBoard);
         }catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND.value(), "게시물 정보를 찾을 수 없습니다.", null);
+            log.error("DB 조회 중 예외 발생: {}", e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND.value(), "서버에 오류가 발생했습니다.", null);
         }
     }
-
 
 
     //글 등록 => boardId 반환
@@ -75,7 +77,7 @@ public class BoardServiceImpl implements BoardService {
             return ResponseDTO.of(HttpStatus.OK.value(), "게시물 작성이 완료되었습니다.", board.getBoardId());
         } catch (Exception e) {
             log.error("게시물 작성 중 예외 발생: {}", e.getMessage(), e);
-            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버에 오류가 발생했습니다.", null);
         }
     }
 
@@ -95,7 +97,8 @@ public class BoardServiceImpl implements BoardService {
             boardRepository.deleteById(boardId);
             return ResponseDTO.of(HttpStatus.OK.value(), "게시물이 삭제되었습니다.", null);
         } catch (Exception e) {
-            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+            log.error("게시물 삭제 중 예외 발생: {}", e.getMessage(), e);
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버에 오류가 발생했습니다.", null);
         }
     }
 
@@ -113,30 +116,41 @@ public class BoardServiceImpl implements BoardService {
             return ResponseDTO.of(HttpStatus.OK.value(), null, boardResponseDTO);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+            log.error("게시물 조회 중 예외 발생: {}", e.getMessage(), e);
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버에 오류가 발생했습니다.", null);
         }
     }
 
     //게시판 글 목록 조회
     @Override
     @Transactional
-    public ResponseDTO<List<BoardResponseDTO>> getBoardList() {
+    public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(Pageable pageable, String category) {
         try {
-            List<Board> boardList = boardRepository.findByOrderByRegDateDesc();
-            List<BoardResponseDTO> boardDTOList = toDTOList(boardList);
+            Page<Board> boards;
 
-            if (boardDTOList == null || boardDTOList.isEmpty()){
-                return ResponseDTO.of(HttpStatus.NO_CONTENT.value(), "게시물이 없습니다.", null);
+            // 카테고리 파라미터가 "all"이면 모든 정보를 반환
+            if ("all".equals(category)) {
+                boards = boardRepository.findByOrderByBoardIdDesc(pageable);
+            } else {
+                boards = boardRepository.findByCategoryOrderByBoardIdDesc(category, pageable);
             }
 
-            return ResponseDTO.of(HttpStatus.OK.value(), null, boardDTOList);
+            if (boards.isEmpty()) {
+                return ResponseDTO.of(HttpStatus.NO_CONTENT.value(), "게시물이 없습니다.", null);
+            } else {
+                Page<BoardResponseDTO> boardDTOPage = boards.map(board -> toDTO(board));
+                return ResponseDTO.of(HttpStatus.OK.value(), null, boardDTOPage);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+            log.error("게시판 글 목록 조회 중 예외 발생: {}", e.getMessage(), e);
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버에 오류가 발생했습니다.", null);
         }
     }
 
 
+
+    // 게시물 수정
     @Override
     @Transactional
     public ResponseDTO<Long> updatePut(Long boardId, BoardRequestDTO.edit editForm, String tokenWithoutBearer) {
@@ -149,15 +163,14 @@ public class BoardServiceImpl implements BoardService {
         try {
             if (!check) {
                 return ResponseDTO.of(HttpStatus.FORBIDDEN.value(), "게시물 수정 권한이 없습니다.", null);
-            }else{
+            }else {
                 updateBoard(board, editForm);
                 return ResponseDTO.of(HttpStatus.OK.value(), "게시물이 수정되었습니다.", board.getBoardId());
             }
-
-
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+            log.error("게시물 수정 중 예외 발생: {}", e.getMessage(), e);
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버에 오류가 발생했습니다.", null);
         }
 
     }
