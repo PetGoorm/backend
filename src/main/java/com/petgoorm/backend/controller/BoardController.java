@@ -7,6 +7,9 @@ import com.petgoorm.backend.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -19,12 +22,22 @@ import java.util.List;
 public class BoardController {
     private final BoardService boardService;
 
-    // 글 목록 조회
+    // 글 목록 조회 (주소 기반)
     @GetMapping("/list")
     public ResponseDTO<List<BoardResponseDTO>> getBoardList(@RequestHeader("Authorization") String accessToken) {
         String tokenWithoutBearer = accessToken.replace("Bearer ", "");
         return boardService.getRegionBoardList(tokenWithoutBearer);
     }
+
+    //글 목록 조회 (카테고리 기반)
+    @GetMapping("/page")
+    public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(
+            @PageableDefault(size = 5) Pageable pageable,
+            @RequestParam(name = "category", required = false) String category) {
+
+        return boardService.getBoardPage(pageable,category);
+    }
+
 
     // 글 조회
     @GetMapping("/{boardId}")
@@ -52,6 +65,7 @@ public class BoardController {
         String tokenWithoutBearer = accessToken.replace("Bearer ", "");
         return boardService.updatePut(boardId, EditForm, tokenWithoutBearer);
     }
+
 
 
 }
