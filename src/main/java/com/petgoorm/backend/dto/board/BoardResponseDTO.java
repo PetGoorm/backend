@@ -44,5 +44,25 @@ public class BoardResponseDTO {
         private String image;
     }
 
+    @Data
+    @RequiredArgsConstructor
+    @Builder
+    @AllArgsConstructor
+    public static class Reply{
+
+        private Long rId;
+
+        private String content;
+
+        @JsonFormat(timezone = "YYYY-MM-DD HH:mm")
+        private LocalDateTime regdate;
+        @JsonFormat(timezone = "YYYY-MM-DD HH:mm")
+        private LocalDateTime moddate;
+
+        private String writerNickname;
+
+    }
+
+
 
 }
