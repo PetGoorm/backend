@@ -24,7 +24,7 @@ public interface BoardService {
 
     public ResponseDTO<BoardResponseDTO> getOneBoard(Long boardId);
 
-    public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(Pageable pageable, String category);
+    ResponseDTO<Page<BoardResponseDTO>> getBoardPage(Pageable pageable, String category, String keyword, String search);
 
     public ResponseDTO<Long> updatePut(Long boardId, BoardRequestDTO.edit boardDTO, String accessToken);
 

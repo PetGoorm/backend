@@ -33,9 +33,11 @@ public class BoardController {
     @GetMapping("/page")
     public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(
             @PageableDefault(size = 5) Pageable pageable,
-            @RequestParam(name = "category", required = false) String category) {
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(required = false) String search, @RequestParam(required = false) String keyword
+    ) {
 
-        return boardService.getBoardPage(pageable,category);
+        return boardService.getBoardPage(pageable,category,search,keyword);
     }
 
 

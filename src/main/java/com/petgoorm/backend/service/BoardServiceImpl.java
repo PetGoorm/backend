@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
@@ -58,7 +59,7 @@ public class BoardServiceImpl implements BoardService {
         try {
             Optional<Board> optionalBoard = boardRepository.findById(boardId);
             return ResponseDTO.of(HttpStatus.OK.value(), null, optionalBoard);
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("DB 조회 중 예외 발생: {}", e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND.value(), "서버에 오류가 발생했습니다.", null);
         }
@@ -124,15 +125,31 @@ public class BoardServiceImpl implements BoardService {
     //게시판 글 목록 조회
     @Override
     @Transactional
-    public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(Pageable pageable, String category) {
+    public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(Pageable pageable, String category, String search, String keyword) {
         try {
             Page<Board> boards;
-
-            // 카테고리 파라미터가 "all"이면 모든 정보를 반환
+            log.info("keyword " + keyword);
+            //모든 카테고리
             if ("all".equals(category)) {
-                boards = boardRepository.findByOrderByBoardIdDesc(pageable);
-            } else {
-                boards = boardRepository.findByCategoryOrderByBoardIdDesc(category, pageable);
+                if (StringUtils.isEmpty(keyword)) { //키워드 없을때
+                    boards = boardRepository.findByOrderByBoardIdDesc(pageable);
+                } else { //키워드 있을때
+                    if ("title".equals(search)) { //제목 검색
+                        boards = boardRepository.findByTitleContainingOrderByBoardIdDesc(keyword, pageable);
+                    } else { //제목+내용 검색
+                        boards = boardRepository.findByTitleContainingOrContentContainingOrderByBoardIdDesc(keyword, keyword, pageable);
+                    }
+                }
+            } else { //특정 카테고리
+                if (StringUtils.isEmpty(keyword)) { //키워드 없을때
+                    boards = boardRepository.findByCategoryOrderByBoardIdDesc(category, pageable);
+                } else { //키워드 있을때
+                    if ("title".equals(search)) { //제목 검색
+                        boards = boardRepository.findByCategoryAndTitleContainingOrderByBoardIdDesc(category, keyword, pageable);
+                    } else { //제목+내용 검색
+                        boards = boardRepository.findByCategoryAndTitleContainingOrContentContainingOrderByBoardIdDesc(category, keyword, keyword, pageable);
+                    }
+                }
             }
 
             if (boards.isEmpty()) {
@@ -149,7 +166,6 @@ public class BoardServiceImpl implements BoardService {
     }
 
 
-
     // 게시물 수정
     @Override
     @Transactional
@@ -163,7 +179,7 @@ public class BoardServiceImpl implements BoardService {
         try {
             if (!check) {
                 return ResponseDTO.of(HttpStatus.FORBIDDEN.value(), "게시물 수정 권한이 없습니다.", null);
-            }else {
+            } else {
                 updateBoard(board, editForm);
                 return ResponseDTO.of(HttpStatus.OK.value(), "게시물이 수정되었습니다.", board.getBoardId());
             }
@@ -186,7 +202,7 @@ public class BoardServiceImpl implements BoardService {
             List<Board> boardList = boardRepository.findByWriterAddressContainingOrderByRegDateDesc(sliceAddress);
             List<BoardResponseDTO> boardDTOList = toDTOList(boardList);
 
-            if (boardDTOList == null || boardDTOList.isEmpty()){
+            if (boardDTOList == null || boardDTOList.isEmpty()) {
                 return ResponseDTO.of(HttpStatus.NO_CONTENT.value(), "게시물이 없습니다.", null);
             }
 
@@ -199,16 +215,13 @@ public class BoardServiceImpl implements BoardService {
 
     //세번째 공백전까지 주소 슬라이스
     @Override
-    public String sliceAddress(String input){
+    public String sliceAddress(String input) {
         String[] arrays = input.split(" ");
         //서울 서초구 잠원동까지 잘리는 주소
         String sliced = String.join(" ", Arrays.copyOfRange(arrays, 0, 3));
         log.info("자른 주소: " + sliced);
         return sliced;
     }
-
-
-
 
 
 }
