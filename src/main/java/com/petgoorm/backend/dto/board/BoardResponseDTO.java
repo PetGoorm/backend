@@ -29,6 +29,8 @@ public class BoardResponseDTO {
     private LocalDateTime regdate;
     @JsonFormat(timezone = "YYYY-MM-DD HH:mm")
     private LocalDateTime moddate;
+    private Long clickCnt;
+
 
     @Data
     @RequiredArgsConstructor

@@ -43,8 +43,9 @@ public class BoardController {
 
     // 글 조회
     @GetMapping("/{boardId}")
-    public ResponseDTO<BoardResponseDTO> getBoard(@PathVariable Long boardId) {
-        return boardService.getOneBoard(boardId);
+    public ResponseDTO<BoardResponseDTO> getBoard(@PathVariable Long boardId,@RequestHeader("Authorization") String accessToken) {
+        String tokenWithoutBearer = accessToken.replace("Bearer ", "");
+        return boardService.getOneBoard(boardId,tokenWithoutBearer);
     }
 
     // 글 등록

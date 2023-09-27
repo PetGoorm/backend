@@ -36,7 +36,6 @@ public class BoardServiceImpl implements BoardService {
 
     final private JwtTokenProvider jwtTokenProvider;
 
-
     // 회원 인증 여부를 확인하는 서비스 내부 메서드
     private Member getAuthenticatedMember(String tokenWithoutBearer) {
         try {
@@ -72,7 +71,6 @@ public class BoardServiceImpl implements BoardService {
     public ResponseDTO<Long> create(BoardRequestDTO boardDTO, String tokenWithoutBearer) {
         Member member = getAuthenticatedMember(tokenWithoutBearer);
         Board board = createToEntity(boardDTO, member);
-        Long boardId = member.getId();
         try {
             boardRepository.save(board);
             return ResponseDTO.of(HttpStatus.OK.value(), "게시물 작성이 완료되었습니다.", board.getBoardId());
@@ -103,14 +101,17 @@ public class BoardServiceImpl implements BoardService {
         }
     }
 
-
     //글 조회
+
     @Override
     @Transactional
-    public ResponseDTO<BoardResponseDTO> getOneBoard(Long boardId) {
-
+    public ResponseDTO<BoardResponseDTO> getOneBoard(Long boardId, String tokenWithoutBearer) {
+        Member member = getAuthenticatedMember(tokenWithoutBearer);
+        if (member == null) {
+            // 인증되지 않은 사용자에게 에러 메시지 반환
+            return ResponseDTO.of(HttpStatus.UNAUTHORIZED.value(), "로그인 후 이용해주세요.", null);
+        }
         Optional<Board> optionalBoard = optionalBoard(boardId).getData();
-
         try {
             Board board = optionalBoard.get();
             BoardResponseDTO boardResponseDTO = toDTO(board);
