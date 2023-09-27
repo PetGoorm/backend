@@ -4,6 +4,8 @@ import com.petgoorm.backend.entity.Board;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
@@ -21,5 +23,14 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findByCategoryAndTitleContainingOrderByBoardIdDesc(String category, String keyword, Pageable pageable);
     Page<Board> findByCategoryAndTitleContainingOrContentContainingOrderByBoardIdDesc(String category, String title, String content, Pageable pageable);
 
+
+    // 캐쉬 조회수를 DB 조회수에 반영하는 쿼리 메서드
+    @Query(value = "UPDATE board SET click_cnt = :viewCnt WHERE board_id = :boardId", nativeQuery = true)
+    void updateClickCntByBoardId(@Param("boardId")Long boardId, @Param("viewCnt")Long viewCnt);
+
+
+    // DB에서 조회수만 가져오는 쿼리 메서드
+    @Query("SELECT b.clickCnt FROM Board b WHERE b.boardId = :boardId")
+    Long findClickCntByBoardId(@Param("boardId") Long boardId);
 
 }
