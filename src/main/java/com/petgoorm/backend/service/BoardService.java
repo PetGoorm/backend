@@ -22,7 +22,8 @@ public interface BoardService {
     public ResponseDTO<Long> create(BoardRequestDTO boardRequestDTO,String accessToken);
     public ResponseDTO<String> delete(Long boardId, String accessToken);
 
-    public ResponseDTO<BoardResponseDTO> getOneBoard(Long boardId);
+    @Transactional
+    ResponseDTO<BoardResponseDTO> getOneBoard(Long boardId, String tokenWithoutBearer);
 
     ResponseDTO<Page<BoardResponseDTO>> getBoardPage(Pageable pageable, String category, String keyword, String search);
 
@@ -36,8 +37,6 @@ public interface BoardService {
                 .image(dto.getImage())
                 .category(dto.getCategory())
                 .writer(member)
-                .writerAddress(member.getAddress())
-                .writerNickname(member.getNickname())
                 .build();
         return board;
     }
@@ -48,8 +47,8 @@ public interface BoardService {
                 .title(board.getTitle())
                 .content(board.getContent())
                 .category(board.getCategory())
-                .writerLocation(board.getWriterAddress().replaceAll("\\\"","").trim())
-                .writerNickname(board.getWriterNickname())
+                .writerLocation(board.getWriter().getAddress().replaceAll("\\\"","").trim())
+                .writerNickname(board.getWriter().getNickname())
                 .image(board.getImage())
                 .regdate(board.getRegDate())
                 .moddate(board.getModDate())

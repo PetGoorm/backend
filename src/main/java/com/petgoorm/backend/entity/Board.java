@@ -35,12 +35,6 @@ public class Board extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member writer;
 
-    @Column(name = "writer_address",nullable = false)
-    private String writerAddress;
-
-    @Column(name = "writer_nickname",nullable = false)
-    private String writerNickname;
-
     @Column(name = "click_cnt",nullable = false)
     @ColumnDefault("0")
     private Long clickCnt;
