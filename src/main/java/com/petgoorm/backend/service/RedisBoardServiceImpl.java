@@ -65,6 +65,33 @@ public class RedisBoardServiceImpl implements RedisBoardService {
         return newCnt;
     }
 
+    // 만료시간 지난 Redis 데이터 삭제하는 메서드 (스케줄러 사용해 구현)
+    public void removeExpiredViewCounts() {
+        double currentTimestamp = System.currentTimeMillis();
+        Set<String> expiredFields = zSetOps.rangeByScore(EXPIRATION_KEY, 0, currentTimestamp);
+        for (String field : expiredFields) {
+            hashOps.delete(VIEW_COUNTS_KEY, field); // 만료된 조회수 삭제
+            zSetOps.remove(EXPIRATION_KEY, field); // 만료 시간 정보 삭제
+        }
+        log.info("현재 시간 기준, 하루 지난 조회수 캐시 및 관련 정보가 삭제 되었습니다.");
+        log.info("삭제된 캐시 수:"+expiredFields.size());
+    }
+
+    // 3분마다 캐시에 저장된 조회수 DB에 반영하는 메서드 (스케줄러 사용해 구현)
+    public void updateRedisViewCountsToDB() {
+
+        Map<String, String> viewCntsCache = hashOps.entries(VIEW_COUNTS_KEY);
+        if (viewCntsCache != null){
+            for (Map.Entry<String, String> entry : viewCntsCache.entrySet()) {
+                String getKey = entry.getKey();
+                Long boardId = Long.parseLong(getKey.replace("boardId:", ""));
+                Long getValue = Long.parseLong(entry.getValue());
+                boardRepository.updateClickCntByBoardId(boardId,getValue);
+            }
+        }else{
+            log.info("Redis 조회수 캐시가 비어있습니다.");
+        }
+    }
 
 
 
