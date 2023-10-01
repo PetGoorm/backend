@@ -63,6 +63,9 @@ public class BoardResponseDTO {
 
         private String writerNickname;
 
+        //본인 댓글인지 여부
+        private Boolean mine;
+
     }
 
 

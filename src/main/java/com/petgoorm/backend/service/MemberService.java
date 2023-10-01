@@ -24,6 +24,7 @@ public interface MemberService {
                 .snsId(requestDTO.getSnsId())
                 .memberPic(requestDTO.getMemberPic())
                 .address(requestDTO.getAddress())
+                .bcode(requestDTO.getBcode())
                 .roles(Collections.singletonList(Authority.ROLE_USER.name()))
                 .build();
         return member;

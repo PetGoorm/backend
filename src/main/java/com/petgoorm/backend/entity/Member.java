@@ -52,6 +52,8 @@ public class Member extends BaseEntity implements UserDetails {
     @Column(name = "address")
     private String address;
 
+    @Column(name = "bcode")
+    private String bcode;
 
     //후에 1명의 사람이 사용자와 관리자 권한 두개를 가질 상황을 고려하여 List로 선언
     @Column
