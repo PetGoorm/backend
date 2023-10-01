@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -53,7 +55,7 @@ public class ReplyTests {
     @Test
     @DisplayName("댓글 등록 컨트롤러 테스트")
     @WithMockUser(username = "seoul2@naver.com", roles = {"USER"})
-    public void update() throws Exception {
+    public void create() throws Exception {
 
         BoardRequestDTO.Reply replyDTO = BoardRequestDTO.Reply.builder()
                 .boardId(1L)
@@ -78,6 +80,38 @@ public class ReplyTests {
                 .andExpect(status().isOk())
                 .andDo(print());
     }
+
+    @Test
+    @Transactional
+    @DisplayName("댓글 수정 컨트롤러 테스트")
+    @WithMockUser(username = "seoungnam@naver.com", roles = {"USER"})
+    public void update() throws Exception {
+
+        BoardRequestDTO.Reply replyDTO = BoardRequestDTO.Reply.builder()
+                .boardId(1L)
+                .content("수정했습니다")
+                .build();
+
+        mockMvc.perform(put("/api/reply/update/{rId}",1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(replyDTO)
+                        ))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+
+    @Test
+    @DisplayName("댓글 삭제 컨트롤러 테스트")
+    @WithMockUser(username = "seoungnam@naver.com", roles = {"USER"})
+    public void delete() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/reply/delete/{rId}",1))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+
 
 
 

@@ -30,5 +30,9 @@ public class Reply extends BaseEntity{
     @JoinColumn(name = "member_id")
     private Member writer;
 
+    public void updateReply(String content){
+        this.content = content;
+    }
+
 
 }

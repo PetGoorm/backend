@@ -23,23 +23,25 @@ public interface ReplyService {
         return reply;
     }
 
-    default BoardResponseDTO.Reply toDTO(Reply reply) {
+    default BoardResponseDTO.Reply toDTO(Reply reply, Long memberId) {
+
         BoardResponseDTO.Reply replyDTO = BoardResponseDTO.Reply.builder()
                 .rId(reply.getRId())
                 .content(reply.getContent())
                 .moddate(reply.getModDate())
                 .regdate(reply.getRegDate())
                 .writerNickname(reply.getWriter().getNickname())
+                .mine(memberId == reply.getWriter().getId())
                 .build();
         return replyDTO;
     }
 
 
     //댓글 목록 조회
-    default List<BoardResponseDTO.Reply> toDTOList(List<Reply> replyList) {
+    default List<BoardResponseDTO.Reply> toDTOList(List<Reply> replyList, Long memberId) {
         List<BoardResponseDTO.Reply> replyDTOList = new ArrayList<>();
         for (Reply reply : replyList) {
-            BoardResponseDTO.Reply replyDTO = toDTO(reply);
+            BoardResponseDTO.Reply replyDTO = toDTO(reply, memberId);
             replyDTOList.add(replyDTO);
         }
         return replyDTOList;
@@ -47,6 +49,11 @@ public interface ReplyService {
 
 
     ResponseDTO<Long> create(BoardRequestDTO.Reply replyDTO);
+
+    ResponseDTO<Long> update(BoardRequestDTO.Reply replyDTO, Long rId);
+
+    //댓글 삭제
+    ResponseDTO<Long> delete(Long rId);
 
     //댓글 목록 조회
     ResponseDTO<List<BoardResponseDTO.Reply>> replyList(Long boardId);

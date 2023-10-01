@@ -52,6 +52,39 @@ public class ReplyServiceImpl implements ReplyService {
 
         }
 
+    }
+
+    //댓글 수정
+    @Override
+    @Transactional
+    public ResponseDTO<Long> update(BoardRequestDTO.Reply replyDTO, Long rId){
+
+        try{
+            Reply reply = replyRepository.findById(rId).orElseThrow(()-> new NullPointerException ("댓글이 존재하지 않습니다."));
+            reply.updateReply(replyDTO.getContent());
+
+            return ResponseDTO.of(HttpStatus.OK.value(), "댓글 수정에 성공했습니다.", reply.getRId());
+
+        }catch (Exception e){
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+
+        }
+
+    }
+
+    //댓글 삭제
+    @Override
+    @Transactional
+    public ResponseDTO<Long> delete(Long rId){
+
+        try{
+            replyRepository.deleteById(rId);
+            return ResponseDTO.of(HttpStatus.OK.value(), "댓글 삭제에 성공했습니다.", rId);
+
+        }catch (Exception e){
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+
+        }
 
     }
 
@@ -70,7 +103,7 @@ public class ReplyServiceImpl implements ReplyService {
             if (opBoard.isPresent()) {
                 Board board = opBoard.get();
                 List<Reply> replyList = replyRepository.findByBoard(board);
-                replyDTOList = toDTOList(replyList);
+                replyDTOList = toDTOList(replyList, member.getId());
             }
 
             return ResponseDTO.of(HttpStatus.OK.value(), "댓글 조회에 성공했습니다.", replyDTOList);
