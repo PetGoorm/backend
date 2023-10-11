@@ -36,6 +36,8 @@ public class BoardServiceImpl implements BoardService {
 
     final private JwtTokenProvider jwtTokenProvider;
 
+    final private RedisBoardService redisBoardService;
+
     // 회원 인증 여부를 확인하는 서비스 내부 메서드
     private Member getAuthenticatedMember(String tokenWithoutBearer) {
         try {
@@ -102,7 +104,6 @@ public class BoardServiceImpl implements BoardService {
     }
 
     //글 조회
-
     @Override
     @Transactional
     public ResponseDTO<BoardResponseDTO> getOneBoard(Long boardId, String tokenWithoutBearer) {
@@ -114,7 +115,16 @@ public class BoardServiceImpl implements BoardService {
         Optional<Board> optionalBoard = optionalBoard(boardId).getData();
         try {
             Board board = optionalBoard.get();
+
+            //조회수 증가 메서드
+            boolean duplViewCheck = redisBoardService.isDuplicateView(member.getId(),boardId);
+            //조회수 중복 확인 메서드
+            if (duplViewCheck == false) {
+                redisBoardService.RedisGetOrIncementBoardViewCount(boardId);
+            }
+
             BoardResponseDTO boardResponseDTO = toDTO(board);
+
             return ResponseDTO.of(HttpStatus.OK.value(), null, boardResponseDTO);
         } catch (Exception e) {
             e.printStackTrace();

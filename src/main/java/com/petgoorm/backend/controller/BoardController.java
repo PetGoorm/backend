@@ -4,6 +4,7 @@ import com.petgoorm.backend.dto.ResponseDTO;
 import com.petgoorm.backend.dto.board.BoardRequestDTO;
 import com.petgoorm.backend.dto.board.BoardResponseDTO;
 import com.petgoorm.backend.service.BoardService;
+import com.petgoorm.backend.service.RedisBoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +46,8 @@ public class BoardController {
     @GetMapping("/{boardId}")
     public ResponseDTO<BoardResponseDTO> getBoard(@PathVariable Long boardId,@RequestHeader("Authorization") String accessToken) {
         String tokenWithoutBearer = accessToken.replace("Bearer ", "");
+
+
         return boardService.getOneBoard(boardId,tokenWithoutBearer);
     }
 

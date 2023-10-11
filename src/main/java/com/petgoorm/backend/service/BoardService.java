@@ -52,6 +52,7 @@ public interface BoardService {
                 .image(board.getImage())
                 .regdate(board.getRegDate())
                 .moddate(board.getModDate())
+                .clickCnt(board.getClickCnt())
                 // 필요한 속성들을 설정
                 .build();
         return boardDTO;
