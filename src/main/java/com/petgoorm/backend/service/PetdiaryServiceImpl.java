@@ -1,5 +1,6 @@
 package com.petgoorm.backend.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,25 @@ public class PetdiaryServiceImpl implements PetdiaryService{
             List<PetdiaryResponseDTO> petdiaryResponseDTOList = toDTOList(petDiaryList);
 
             return ResponseDTO.of(HttpStatus.OK.value(), "펫 다이어리 조회에 성공했습니다.", petdiaryResponseDTOList);
+
+        } catch (Exception e) {
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+        }
+    }
+
+    // 펫 다이어리 하루 조회
+    @Override
+    public ResponseDTO<PetdiaryResponseDTO> oneread(LocalDate day) {
+        Member member = memberRepository.findByEmail(SecurityUtil.getCurrentUserEmail())
+            .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
+
+        try {
+            PetDiary petDiaryList = petDiaryRepository.findByOwnerAndDay(member, day);
+            System.out.println(petDiaryList);
+            PetdiaryResponseDTO petdiaryResponseDTO = toDTO(petDiaryList);
+            System.out.println(petdiaryResponseDTO);
+
+            return ResponseDTO.of(HttpStatus.OK.value(), "펫 다이어리 조회에 성공했습니다.", petdiaryResponseDTO);
 
         } catch (Exception e) {
             return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);

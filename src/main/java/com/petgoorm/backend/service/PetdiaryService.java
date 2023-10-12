@@ -1,5 +1,6 @@
 package com.petgoorm.backend.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +15,11 @@ public interface PetdiaryService {
     //펫 다이어리 등록
     ResponseDTO<Long> diarycreate(PetdiaryRequestDTO petdiaryRequestDTO);
 
-    //펫 다이어리 조회
+    //해당 사용자의 모든 펫 다이어리 조회
     ResponseDTO<List<PetdiaryResponseDTO>> diaryread();
+
+    //펫 다이어리 날짜 하루 조회
+    ResponseDTO<PetdiaryResponseDTO> oneread(LocalDate day);
 
     //펫 다이어리 수정
     ResponseDTO<PetDiary> diaryupdate(Long petdiaryid, PetdiaryRequestDTO petdiaryRequestDTO);
