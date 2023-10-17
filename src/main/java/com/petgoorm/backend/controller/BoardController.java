@@ -4,7 +4,6 @@ import com.petgoorm.backend.dto.ResponseDTO;
 import com.petgoorm.backend.dto.board.BoardRequestDTO;
 import com.petgoorm.backend.dto.board.BoardResponseDTO;
 import com.petgoorm.backend.service.BoardService;
-import com.petgoorm.backend.service.RedisBoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,12 +32,13 @@ public class BoardController {
     //글 목록 조회 (카테고리 기반)
     @GetMapping("/page")
     public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(
+            @RequestHeader("Authorization") String accessToken,
             @PageableDefault(size = 5) Pageable pageable,
             @RequestParam(name = "category", required = false) String category,
             @RequestParam(required = false) String search, @RequestParam(required = false) String keyword
     ) {
-
-        return boardService.getBoardPage(pageable,category,search,keyword);
+        String tokenWithoutBearer = accessToken.replace("Bearer ", "");
+        return boardService.getBoardPage(tokenWithoutBearer,pageable,category,search,keyword);
     }
 
 
@@ -72,6 +72,11 @@ public class BoardController {
         return boardService.updatePut(boardId, EditForm, tokenWithoutBearer);
     }
 
+    @GetMapping("/recently")
+    public ResponseDTO<Page<BoardResponseDTO>> getRecentlyBoards (@RequestHeader("Authorization") String accessToken){
+        String tokenWithoutBearer = accessToken.replace("Bearer ", "");
+        return boardService.getRecentlyBoards(tokenWithoutBearer);
+    }
 
 
 }
