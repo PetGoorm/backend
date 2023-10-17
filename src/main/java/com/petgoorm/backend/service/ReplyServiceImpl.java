@@ -7,6 +7,8 @@ import com.petgoorm.backend.dto.board.BoardResponseDTO;
 import com.petgoorm.backend.entity.Board;
 import com.petgoorm.backend.entity.Member;
 import com.petgoorm.backend.entity.Reply;
+import com.petgoorm.backend.handler.CustomException;
+import com.petgoorm.backend.handler.ErrorCode;
 import com.petgoorm.backend.repository.BoardRepository;
 import com.petgoorm.backend.repository.MemberRepository;
 import com.petgoorm.backend.repository.ReplyRepository;
@@ -96,6 +98,10 @@ public class ReplyServiceImpl implements ReplyService {
                 .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
 
         Optional<Board> opBoard = boardRepository.findById(boardId);
+
+        //게시글이 존재하지 않는다면 customexception 발생
+        //CustomException 사용한 예시 2
+        opBoard.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_POST));
 
         List<BoardResponseDTO.Reply> replyDTOList = new ArrayList<>();
 
