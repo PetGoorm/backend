@@ -1,5 +1,7 @@
 package com.petgoorm.backend.config;
 
+import com.petgoorm.backend.handler.CustomAccessDeniedHandler;
+import com.petgoorm.backend.handler.CustomAuthenticationEntryPoint;
 import com.petgoorm.backend.jwt.JwtAuthenticationFilter;
 import com.petgoorm.backend.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -41,13 +43,16 @@ public class WebSecurityConfig {
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .authorizeRequests()
-                .antMatchers("/member/login", "/member/signup").permitAll() // 로그인과 회원가입은 인증 없이 접근 가능
-                .anyRequest().authenticated()
+                //인증 인가 exception 핸들링
+                // (인증 인가에서 에러가 발생할 시 무조건 아래 클래스들을 거쳐서 클라이언트에 response가 반환됨)
+                .exceptionHandling()
+                .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                .accessDeniedHandler(new CustomAccessDeniedHandler())
                 .and()
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate), UsernamePasswordAuthenticationFilter.class);
-        // JwtAuthenticationFilter를 UsernamePasswordAuthentictaionFilter 전에 적용시킨다.
-
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate), UsernamePasswordAuthenticationFilter.class)
+                .authorizeRequests()
+                .antMatchers("/member/login", "/member/signup","/member/checkEmail","/member/checkNick","/member/reissue").permitAll() // 로그인과 회원가입은 인증 없이 접근 가능
+                .anyRequest().authenticated();
 
         return http.build();
     }
