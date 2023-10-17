@@ -42,7 +42,7 @@ public class WebSecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/member/login", "/member/signup").permitAll() // 로그인과 회원가입은 인증 없이 접근 가능
+                .antMatchers("/member/login", "/member/signup","/member/checkEmail","/member/checkNick").permitAll() // 로그인과 회원가입은 인증 없이 접근 가능
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate), UsernamePasswordAuthenticationFilter.class);
