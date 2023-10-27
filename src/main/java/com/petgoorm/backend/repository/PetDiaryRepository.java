@@ -2,6 +2,7 @@ package com.petgoorm.backend.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,5 +13,7 @@ public interface PetDiaryRepository extends JpaRepository<PetDiary, Long> {
 
     List<PetDiary> findByOwner(Member member);
 
-    PetDiary findByOwnerAndDay(Member member, LocalDate day);
+
+    Optional<PetDiary> findByOwnerAndDay(Member member, LocalDate day);
+
 }

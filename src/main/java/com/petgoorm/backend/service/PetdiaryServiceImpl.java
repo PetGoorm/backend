@@ -43,11 +43,15 @@ public class PetdiaryServiceImpl implements PetdiaryService{
             .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
 
         try {
-            PetDiary petDiary = toEntity(petdiaryRequestDTO, member);
-            petDiaryRepository.save(petDiary);
+            Optional<PetDiary> diary = petDiaryRepository.findByOwnerAndDay(member, petdiaryRequestDTO.getDay());
 
-            return ResponseDTO.of(HttpStatus.OK.value(), "펫 다이어리 등록에 성공했습니다.", petDiary.getDiaryId());
-
+            if (diary.isEmpty()) {
+                PetDiary petDiary = toEntity(petdiaryRequestDTO, member);
+                petDiaryRepository.save(petDiary);
+                return ResponseDTO.of(HttpStatus.OK.value(), "펫 다이어리 등록에 성공했습니다.", petDiary.getDiaryId());
+            } else {
+                return ResponseDTO.of(HttpStatus.CONFLICT.value(), "이미 해당 날짜의 펫 다이어리가 존재합니다.", null);
+            }
         } catch (Exception e) {
             return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
 
@@ -79,10 +83,8 @@ public class PetdiaryServiceImpl implements PetdiaryService{
             .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
 
         try {
-            PetDiary petDiaryList = petDiaryRepository.findByOwnerAndDay(member, day);
-            System.out.println(petDiaryList);
-            PetdiaryResponseDTO petdiaryResponseDTO = toDTO(petDiaryList);
-            System.out.println(petdiaryResponseDTO);
+            Optional<PetDiary> petDiaryList = petDiaryRepository.findByOwnerAndDay(member, day);
+            PetdiaryResponseDTO petdiaryResponseDTO = toDTO(petDiaryList.get());
 
             return ResponseDTO.of(HttpStatus.OK.value(), "펫 다이어리 조회에 성공했습니다.", petdiaryResponseDTO);
 
