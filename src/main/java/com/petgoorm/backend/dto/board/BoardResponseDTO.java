@@ -30,6 +30,7 @@ public class BoardResponseDTO {
     @JsonFormat(timezone = "YYYY-MM-DD HH:mm")
     private LocalDateTime moddate;
     private Long clickCnt;
+    private String bcode;
 
 
     @Data

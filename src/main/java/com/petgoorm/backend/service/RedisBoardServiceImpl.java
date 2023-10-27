@@ -23,10 +23,10 @@ public class RedisBoardServiceImpl implements RedisBoardService {
 
     private final BoardRepository boardRepository;
 
-    private final String VIEW_COUNTS_KEY = "boardViewCnt"; // 조회수 해시 키 (안에 필드(boardId)로 한번 더 분류)
+    private static final String VIEW_COUNTS_KEY = "BoardViewCnt"; // 조회수 해시 키 (안에 필드(boardId)로 한번 더 분류)
     private static final String USER_VIEW_RECORDS_KEY = "BoardViewDuplicateCheck::memberId::"; // 사용자 중복 조회 키 (멤버별 생성)
     private static final String EXPIRATION_KEY = "BoardViewExpirationTime"; //조회수 만료 (안에 필드(boardId)로 한번 더 분류)
-
+    private static final String RECENTLY_BOARD_KEY = "RecentlyBoards";
     private RedisTemplate<String, String> redisTemplate; // 문자열로 처리
     private HashOperations<String, String, String> hashOps;
     private ZSetOperations<String, String> zSetOps;

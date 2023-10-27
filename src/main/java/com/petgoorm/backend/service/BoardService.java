@@ -25,7 +25,7 @@ public interface BoardService {
     @Transactional
     ResponseDTO<BoardResponseDTO> getOneBoard(Long boardId, String tokenWithoutBearer);
 
-    ResponseDTO<Page<BoardResponseDTO>> getBoardPage(Pageable pageable, String category, String keyword, String search);
+    ResponseDTO<Page<BoardResponseDTO>> getBoardPage(String tokenWithoutBearer, Pageable pageable, String category, String keyword, String search);
 
     public ResponseDTO<Long> updatePut(Long boardId, BoardRequestDTO.edit boardDTO, String accessToken);
 
@@ -36,6 +36,7 @@ public interface BoardService {
                 .content(dto.getContent())
                 .image(dto.getImage())
                 .category(dto.getCategory())
+                .bcode(member.getBcode())
                 .writer(member)
                 .build();
         return board;
@@ -52,6 +53,8 @@ public interface BoardService {
                 .image(board.getImage())
                 .regdate(board.getRegDate())
                 .moddate(board.getModDate())
+                .clickCnt(board.getClickCnt())
+                .bcode(board.getBcode())
                 // 필요한 속성들을 설정
                 .build();
         return boardDTO;
@@ -83,4 +86,7 @@ public interface BoardService {
 
     //세번째 공백전까지 주소 슬라이스
     String sliceAddress(String input);
+
+    ResponseDTO<Page<BoardResponseDTO>> getRecentlyBoards(String tokenWithoutBearer);
+
 }

@@ -12,6 +12,7 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -35,6 +36,8 @@ public class BoardServiceImpl implements BoardService {
     final private MemberRepository memberRepository;
 
     final private JwtTokenProvider jwtTokenProvider;
+
+    final private RedisBoardService redisBoardService;
 
     // 회원 인증 여부를 확인하는 서비스 내부 메서드
     private Member getAuthenticatedMember(String tokenWithoutBearer) {
@@ -102,7 +105,6 @@ public class BoardServiceImpl implements BoardService {
     }
 
     //글 조회
-
     @Override
     @Transactional
     public ResponseDTO<BoardResponseDTO> getOneBoard(Long boardId, String tokenWithoutBearer) {
@@ -114,7 +116,16 @@ public class BoardServiceImpl implements BoardService {
         Optional<Board> optionalBoard = optionalBoard(boardId).getData();
         try {
             Board board = optionalBoard.get();
+
+            //조회수 증가 메서드
+            boolean duplViewCheck = redisBoardService.isDuplicateView(member.getId(), boardId);
+            //조회수 중복 확인 메서드
+            if (duplViewCheck == false) {
+                redisBoardService.RedisGetOrIncementBoardViewCount(boardId);
+            }
+
             BoardResponseDTO boardResponseDTO = toDTO(board);
+
             return ResponseDTO.of(HttpStatus.OK.value(), null, boardResponseDTO);
         } catch (Exception e) {
             e.printStackTrace();
@@ -123,32 +134,35 @@ public class BoardServiceImpl implements BoardService {
         }
     }
 
-    //게시판 글 목록 조회
+    // 게시물 조회
     @Override
     @Transactional
-    public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(Pageable pageable, String category, String search, String keyword) {
+    public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(String tokenWithoutBearer, Pageable pageable, String category, String search, String keyword) {
+        Member member = getAuthenticatedMember(tokenWithoutBearer);
+        if (member == null) {
+            return ResponseDTO.of(HttpStatus.UNAUTHORIZED.value(), "로그인 후 이용해주세요.", null);
+        }
+
         try {
             Page<Board> boards;
-            log.info("keyword " + keyword);
-            //모든 카테고리
             if ("all".equals(category)) {
-                if (StringUtils.isEmpty(keyword)) { //키워드 없을때
-                    boards = boardRepository.findByOrderByBoardIdDesc(pageable);
-                } else { //키워드 있을때
-                    if ("title".equals(search)) { //제목 검색
+                if (StringUtils.isEmpty(keyword)) { // 키워드 없을 때
+                    boards = boardRepository.findByBcodeOrderByBoardIdDesc(member.getBcode(), pageable);
+                } else { // 키워드 있을 때
+                    if ("title".equals(search)) { // 제목 검색
                         boards = boardRepository.findByTitleContainingOrderByBoardIdDesc(keyword, pageable);
-                    } else { //제목+내용 검색
+                    } else { // 제목+내용 검색
                         boards = boardRepository.findByTitleContainingOrContentContainingOrderByBoardIdDesc(keyword, keyword, pageable);
                     }
                 }
-            } else { //특정 카테고리
-                if (StringUtils.isEmpty(keyword)) { //키워드 없을때
-                    boards = boardRepository.findByCategoryOrderByBoardIdDesc(category, pageable);
-                } else { //키워드 있을때
-                    if ("title".equals(search)) { //제목 검색
-                        boards = boardRepository.findByCategoryAndTitleContainingOrderByBoardIdDesc(category, keyword, pageable);
-                    } else { //제목+내용 검색
-                        boards = boardRepository.findByCategoryAndTitleContainingOrContentContainingOrderByBoardIdDesc(category, keyword, keyword, pageable);
+            } else { // 특정 카테고리
+                if (StringUtils.isEmpty(keyword)) { // 키워드 없을 때
+                    boards = boardRepository.findByBcodeAndCategoryOrderByBoardIdDesc(member.getBcode(), category, pageable);
+                } else { // 키워드 있을 때
+                    if ("title".equals(search)) { // 제목 검색
+                        boards = boardRepository.findByBcodeAndCategoryAndTitleContainingOrderByBoardIdDesc(member.getBcode(), category, keyword, pageable);
+                    } else { // 제목+내용 검색
+                        boards = boardRepository.findByBcodeAndCategoryAndTitleContainingOrContentContainingOrderByBoardIdDesc(member.getBcode(), category, keyword, keyword, pageable);
                     }
                 }
             }
@@ -160,12 +174,10 @@ public class BoardServiceImpl implements BoardService {
                 return ResponseDTO.of(HttpStatus.OK.value(), null, boardDTOPage);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("게시판 글 목록 조회 중 예외 발생: {}", e.getMessage(), e);
             return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버에 오류가 발생했습니다.", null);
         }
     }
-
 
     // 게시물 수정
     @Override
@@ -224,7 +236,32 @@ public class BoardServiceImpl implements BoardService {
         return sliced;
     }
 
+    //최신 5개 게시물 조회
+    @Override
+    public ResponseDTO<Page<BoardResponseDTO>> getRecentlyBoards(String tokenWithoutBearer) {
+        Member member = getAuthenticatedMember(tokenWithoutBearer);
+        if (member == null) {
+            return ResponseDTO.of(HttpStatus.UNAUTHORIZED.value(), "로그인 후 이용해주세요.", null);
+        }
 
+        // 페이지 번호를 0, 페이지 사이즈를 5로 설정하여 최신 5개의 게시물 조회
+        try {
+            PageRequest recentlyboards = PageRequest.of(0, 5);
+            // 생성일자 기준으로 내림차순 정렬하여 조회
+            Page<Board> boards = boardRepository.findAllByOrderByRegDateDesc(recentlyboards);
+            if (boards.isEmpty()) {
+                return ResponseDTO.of(HttpStatus.NO_CONTENT.value(), "최신 게시물이 없습니다.", null);
+            } else {
+                Page<BoardResponseDTO> boardDTOPage = boards.map(board -> toDTO(board));
+                return ResponseDTO.of(HttpStatus.OK.value(), null, boardDTOPage);
+            }
+        } catch (Exception e) {
+            log.error("게시판 글 목록 조회 중 예외 발생: {}", e.getMessage(), e);
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버에 오류가 발생했습니다.", null);
+        }
+
+
+    }
 }
 
 

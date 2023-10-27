@@ -32,12 +32,13 @@ public class BoardController {
     //글 목록 조회 (카테고리 기반)
     @GetMapping("/page")
     public ResponseDTO<Page<BoardResponseDTO>> getBoardPage(
+            @RequestHeader("Authorization") String accessToken,
             @PageableDefault(size = 5) Pageable pageable,
             @RequestParam(name = "category", required = false) String category,
             @RequestParam(required = false) String search, @RequestParam(required = false) String keyword
     ) {
-
-        return boardService.getBoardPage(pageable,category,search,keyword);
+        String tokenWithoutBearer = accessToken.replace("Bearer ", "");
+        return boardService.getBoardPage(tokenWithoutBearer,pageable,category,search,keyword);
     }
 
 
@@ -45,6 +46,8 @@ public class BoardController {
     @GetMapping("/{boardId}")
     public ResponseDTO<BoardResponseDTO> getBoard(@PathVariable Long boardId,@RequestHeader("Authorization") String accessToken) {
         String tokenWithoutBearer = accessToken.replace("Bearer ", "");
+
+
         return boardService.getOneBoard(boardId,tokenWithoutBearer);
     }
 
@@ -69,6 +72,11 @@ public class BoardController {
         return boardService.updatePut(boardId, EditForm, tokenWithoutBearer);
     }
 
+    @GetMapping("/recently")
+    public ResponseDTO<Page<BoardResponseDTO>> getRecentlyBoards (@RequestHeader("Authorization") String accessToken){
+        String tokenWithoutBearer = accessToken.replace("Bearer ", "");
+        return boardService.getRecentlyBoards(tokenWithoutBearer);
+    }
 
 
 }
