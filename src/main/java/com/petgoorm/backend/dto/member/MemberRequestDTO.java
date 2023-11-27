@@ -9,6 +9,7 @@ public class MemberRequestDTO {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
+    @Builder
     public static class SignUp {
         private String email;
 

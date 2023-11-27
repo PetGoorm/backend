@@ -70,6 +70,16 @@ public class MemberController {
 
 
 
+    //이메일 중복체크
+    @GetMapping("/myInfo")
+    public ResponseDTO<MemberRequestDTO.SignUp> myInfo() {
+        return memberService.memberInfo();
+    }
+
+    @PatchMapping("/updateInfo")
+    public ResponseDTO<Long> updateInfo(@RequestBody MemberRequestDTO.SignUp updateInfo){
+        return memberService.updateMember(updateInfo);
+    }
 
 
 }

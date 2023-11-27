@@ -7,6 +7,7 @@ import com.petgoorm.backend.dto.member.MemberResponseDTO;
 import com.petgoorm.backend.entity.Authority;
 import com.petgoorm.backend.entity.Member;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
@@ -30,6 +31,22 @@ public interface MemberService {
         return member;
     }
 
+    //멤버 정보 반환 DTO로 변환
+    default MemberRequestDTO.SignUp toDTO(Member member){
+        MemberRequestDTO.SignUp memberDTO = MemberRequestDTO.SignUp.builder()
+                .memberName(member.getMemberName())
+                .email(member.getEmail())
+                .address(member.getAddress())
+                .phoneNumber(member.getPhoneNumber())
+                .bcode(member.getBcode())
+                .nickname(member.getNickname())
+                .build();
+        return memberDTO;
+    }
+
+
+
+
     //회원등록
     ResponseDTO<Long> signup(MemberRequestDTO.SignUp memberRequestDTO);
 
@@ -50,7 +67,14 @@ public interface MemberService {
 
     ResponseDTO<Long> updateNick(MemberRequestDTO.UpdateNick updateNick);
 
+    //회원 정보 반환(마이페이지)
+    @Transactional
+    ResponseDTO<MemberRequestDTO.SignUp> memberInfo();
+
     ResponseDTO<Long> deleteMember();
 
 
+    //회원정보 업데이트(마이페이지) 서비스
+    @Transactional
+    ResponseDTO<Long> updateMember(MemberRequestDTO.SignUp updateInfo);
 }

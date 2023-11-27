@@ -1,5 +1,6 @@
 package com.petgoorm.backend.entity;
 
+import com.petgoorm.backend.dto.member.MemberRequestDTO;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -101,6 +102,13 @@ public class Member extends BaseEntity implements UserDetails {
     //닉네임 변경 메서드
     public void updateNick(String updateNick){
         this.nickname = updateNick;
+    }
+
+    public void updateMember(MemberRequestDTO.SignUp updateInfo){
+        this.memberName = updateInfo.getMemberName();
+        this.address = updateInfo.getAddress();
+        this.phoneNumber = updateInfo.getPhoneNumber();
+        this.bcode = updateInfo.getBcode();
     }
 
 }
