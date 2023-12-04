@@ -133,7 +133,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public ResponseDTO<String> reissue(String nowAccessToken) {
         try {
-            log.info("reissue service단 accesstoken: "+nowAccessToken);
+            log.info("reissue service단 accesstoken: " + nowAccessToken);
             // 1. Access Token 에서 User email 을 가져옵니다.
             Authentication authentication = jwtTokenProvider.getAuthentication(nowAccessToken);
 
@@ -158,7 +158,7 @@ public class MemberServiceImpl implements MemberService {
             String accessToken = jwtTokenProvider.accessToken(authentication);
             log.info("reissue: 새로운 accesstoken 발급완료: " + accessToken);
             return ResponseDTO.of(HttpStatus.OK.value(), "Token 정보가 갱신되었습니다.", accessToken);
-        } catch(ExpiredJwtException e) {
+        } catch (ExpiredJwtException e) {
             throw new CustomException(ErrorCode.JWT_REFRESH_TOKEN_EXPIRED);
         }
     }
@@ -236,6 +236,24 @@ public class MemberServiceImpl implements MemberService {
 
     }
 
+    //회원 정보 반환(마이페이지)
+    @Transactional
+    @Override
+    public ResponseDTO<MemberRequestDTO.SignUp> memberInfo() {
+        // 현재 로그인한 사용자의 Member 정보 가져오기
+        Member member = memberRepository.findByEmail(SecurityUtil.getCurrentUserEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
+
+        try {
+            MemberRequestDTO.SignUp memberDTO = toDTO(member);
+            log.info("멤버정보:" + memberDTO);
+            return ResponseDTO.of(HttpStatus.OK.value(), "멤버 정보 반환에 성공했습니다.", memberDTO);
+        } catch (Exception e) {
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+        }
+
+    }
+
     //회원 탈퇴 서비스
     @Transactional
     @Override
@@ -252,6 +270,24 @@ public class MemberServiceImpl implements MemberService {
             return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
         }
 
+    }
+
+    //회원정보 업데이트(마이페이지) 서비스
+    @Transactional
+    @Override
+    public ResponseDTO<Long> updateMember(MemberRequestDTO.SignUp updateInfo) {
+        try {
+            // 현재 로그인한 사용자의 Member 정보 가져오기
+            Member member = memberRepository.findByEmail(SecurityUtil.getCurrentUserEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("해당하는 유저를 찾을 수 없습니다."));
+
+            member.updateMember(updateInfo);
+            return ResponseDTO.of(HttpStatus.OK.value(), "회원 정보 수정에 성공했습니다.", member.getId());
+
+        } catch (Exception e) {
+            return ResponseDTO.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "예기치 못한 에러가 발생했습니다.", null);
+
+        }
     }
 
 
