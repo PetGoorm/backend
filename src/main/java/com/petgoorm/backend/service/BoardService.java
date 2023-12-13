@@ -48,7 +48,6 @@ public interface BoardService {
                 .title(board.getTitle())
                 .content(board.getContent())
                 .category(board.getCategory())
-                .writerLocation(board.getWriter().getAddress().replaceAll("\\\"","").trim())
                 .writerNickname(board.getWriter().getNickname())
                 .image(board.getImage())
                 .regdate(board.getRegDate())
