@@ -24,7 +24,6 @@ public class BoardResponseDTO {
     private String category;
     private String image;
     private String writerNickname;
-    private String writerLocation;
     @JsonFormat(timezone = "YYYY-MM-DD HH:mm")
     private LocalDateTime regdate;
     @JsonFormat(timezone = "YYYY-MM-DD HH:mm")
