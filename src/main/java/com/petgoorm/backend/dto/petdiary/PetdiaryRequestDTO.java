@@ -28,4 +28,6 @@ public class PetdiaryRequestDTO {
     private String diary;
 
     private LocalDate day;
+
+    private String image;
 }
