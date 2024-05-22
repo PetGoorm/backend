@@ -51,13 +51,16 @@ public class PetDiary extends BaseEntity{
     @Column(name = "day")
     private LocalDate day;
 
+    @Column(name = "image")
+    private String image;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member owner;
 
     //내용 수정 메소드
     public void updatediary(String water, String poop, String snack, String food, String walk,
-        String diary, LocalDate day){
+        String diary, LocalDate day, String image){
 
         this.water = water;
         this.poop = poop;
@@ -66,5 +69,6 @@ public class PetDiary extends BaseEntity{
         this.walk = walk;
         this.diary = diary;
         this.day = day;
+        this.image = image;
     }
 }

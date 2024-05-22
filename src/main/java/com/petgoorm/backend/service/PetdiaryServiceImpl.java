@@ -102,7 +102,8 @@ public class PetdiaryServiceImpl implements PetdiaryService{
 
         try {
             PetDiary petDiary = petDiaryRepository.findById(petdiaryid).orElseThrow(()-> new NullPointerException("다이어리가 존재하지 않습니다."));
-            petDiary.updatediary(dto.getWater(), dto.getPoop(), dto.getSnack(), dto.getFood(), dto.getWalk(), dto.getDiary(), dto.getDay());
+            petDiary.updatediary(dto.getWater(), dto.getPoop(), dto.getSnack(), dto.getFood(), dto.getWalk(), dto.getDiary(), dto.getDay(),
+                dto.getImage());
             petDiaryRepository.save(petDiary);
 
             return ResponseDTO.of(HttpStatus.OK.value(), "펫 다이어리 수정에 성공했습니다.", petDiary);

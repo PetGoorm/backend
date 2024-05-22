@@ -37,6 +37,7 @@ public interface PetdiaryService {
             .snack(petdiaryRequestDTO.getSnack())
             .diary(petdiaryRequestDTO.getDiary())
             .day(petdiaryRequestDTO.getDay())
+            .image(petdiaryRequestDTO.getImage())
             .owner(member)
             .build();
         return petDiary;
@@ -53,6 +54,7 @@ public interface PetdiaryService {
             .snack(petDiary.getSnack())
             .diary(petDiary.getDiary())
             .day(petDiary.getDay())
+            .image(petDiary.getImage())
             .regdate(petDiary.getRegDate())
             .build();
 

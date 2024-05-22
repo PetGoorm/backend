@@ -32,6 +32,8 @@ public class PetdiaryResponseDTO {
 
     private LocalDate day;
 
+    private String image;
+
     @JsonFormat(timezone = "YYYY-MM-DD HH:mm")
     private LocalDateTime regdate;
 
