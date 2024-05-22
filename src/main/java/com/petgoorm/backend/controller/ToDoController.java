@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.petgoorm.backend.dto.ResponseDTO;
 import com.petgoorm.backend.dto.todo.ToDoDTO;
+import com.petgoorm.backend.dto.todo.TodoRepeatDTO;
 import com.petgoorm.backend.entity.Member;
 import com.petgoorm.backend.entity.ToDo;
 import com.petgoorm.backend.service.ToDoService;
@@ -68,5 +69,11 @@ public class ToDoController {
     public ResponseDTO<ToDo> delete(@RequestHeader("Authorization") String accessToken, @PathVariable("id") Long todoid) {
 
         return toDoService.delete(todoid, accessToken);
+    }
+
+    //todolist 반복 설정
+    @PostMapping("/repeat/{id}")
+    public ResponseDTO<List<ToDo>> createRepeatToDo(@RequestBody TodoRepeatDTO repeatDTO, @RequestHeader("Authorization") String accessToken, @PathVariable("id") Long todoid) {
+        return toDoService.createWithRepeat(repeatDTO, accessToken, todoid);
     }
 }

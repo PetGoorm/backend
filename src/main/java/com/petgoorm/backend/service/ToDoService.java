@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.petgoorm.backend.dto.ResponseDTO;
 import com.petgoorm.backend.dto.todo.ToDoDTO;
+import com.petgoorm.backend.dto.todo.TodoRepeatDTO;
 import com.petgoorm.backend.entity.Member;
 import com.petgoorm.backend.entity.ToDo;
 
@@ -40,6 +41,7 @@ public interface ToDoService {
     ResponseDTO<List<ToDo>> getDayTodo(final String accessToken, LocalDate day);
     ResponseDTO<ToDo> update(final ToDoDTO toDoDTO, Long todoId, String accessToken);
     ResponseDTO<ToDo> delete(final Long entity, String accessToken);
+    public ResponseDTO<List<ToDo>> createWithRepeat(TodoRepeatDTO repeatDTO, String accessToken, Long todoId);
 
     Member getAuthenticatedMember(String accessToken);
 }
